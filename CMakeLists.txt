@@ -13,6 +13,10 @@ CPMAddPackage(
   OPTIONS "STDEXEC_BUILD_TESTS OFF" "STDEXEC_BUILD_EXAMPLES OFF"
 )
 
+FetchContent_Declare(llhttp
+  URL "https://github.com/nodejs/llhttp/archive/refs/tags/release/v9.3.0.tar.gz")
+
+FetchContent_MakeAvailable(llhttp)
 
 
 find_path(liburing_INCLUDE_DIR
@@ -28,27 +32,13 @@ find_library(liburing_LIBRARY
 message(STATUS "liburing include directory: ${liburing_INCLUDE_DIR}")
 message(STATUS "liburing library: ${liburing_LIBRARY}")
 
-include(FetchContent)
-FetchContent_Declare(
-    picohttpparser
-    GIT_REPOSITORY https://github.com/h2o/picohttpparser.git
-    GIT_TAG master
-)
-FetchContent_MakeAvailable(picohttpparser)
-add_library(picohttpparser SHARED
-    ${picohttpparser_SOURCE_DIR}/picohttpparser.c
-)
-target_include_directories(picohttpparser
-    PUBLIC ${picohttpparser_SOURCE_DIR}
-)
-
 list(APPEND SOURCE_FILES
     src/main.cpp    
     src/server.cpp    
 )
 add_executable(webserver ${SOURCE_FILES})
 target_compile_options(webserver PRIVATE -Wall -Wextra -pedantic -Werror)
-target_link_libraries(webserver STDEXEC::stdexec ${liburing_LIBRARY} picohttpparser)
+target_link_libraries(webserver STDEXEC::stdexec ${liburing_LIBRARY} llhttp_shared)
 target_include_directories(webserver PRIVATE ${liburing_INCLUDE_DIR})
 
 # Treat stdexec headers as system to avoid third-party warnings-as-errors
